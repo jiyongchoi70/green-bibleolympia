@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 신청서: 로그인 사용자만 자신의 문서 읽기/쓰기 (API에서 검증하므로 서버만 접근 권장)
+    match /applications/{docId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+    }
+    // 사용자: 본인 문서만 생성/읽기/수정 (회원가입 시 프로필 저장), 관리자 목록은 API 경유
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // 공고: 모두 읽기, 쓰기는 API(Admin SDK)에서만
+    match /announcements/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // 공통코드: 모두 읽기, 쓰기는 API에서만
+    match /common_codes/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // 대분류(bo_lookup_type) / 중분류(bo_lookup_value): 로그인 시 관리자 화면에서 읽기·쓰기
+    match /bo_lookup_type/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /bo_lookup_value/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    // 회원: bo_users (회원가입 시 저장). 문서 ID = auth.uid 인 경우만 생성/읽기/수정
+    match /bo_users/{docId} {
+      allow create, read, update, delete: if request.auth != null && request.auth.uid == docId;
+    }
+    // 지원자: bo_person (신청서별 지원자 목록). read는 전체 max(applicationNo) 조회를 위해 로그인 사용자 허용
+    match /bo_person/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+  }
+}

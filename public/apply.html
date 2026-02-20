@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%234a90d9' width='32' height='32' rx='4'/%3E%3Cpath fill='white' d='M10 8h4v16h-4V8zm8 0h4v16h-4V8zm-4 2v12l6-6-6-6z'/%3E%3C/svg%3E" />
+  <title>신청서 - 전국 바이블 올림피아드</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/apply.css" />
+</head>
+<body>
+  <header class="header">
+    <h1><a href="/" style="color:inherit;text-decoration:none;">전국 바이블 올림피아드</a></h1>
+    <nav class="nav-main">
+      <a href="/apply.html">신청서</a>
+      <a href="/status.html">신청현황</a>
+      <a href="/admin/">관리자</a>
+    </nav>
+    <div class="auth-status" id="authStatus">
+      <span id="userEmail"></span>
+      <button type="button" id="btnLogout" class="btn btn-outline" style="display:none;">로그아웃</button>
+      <a href="/login.html" id="btnLogin" class="btn btn-primary" style="display:inline-block;">로그인</a>
+    </div>
+  </header>
+
+  <main class="main main-apply">
+    <div class="page-title-row" style="display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+      <h2 class="page-title" style="margin:0;">신청서</h2>
+      <button type="button" id="btnViewAnnouncement" class="btn btn-outline">공지사항 보기</button>
+    </div>
+    <div id="needLogin" class="alert alert-info">
+      신청서를 제출하려면 로그인해 주세요.
+    </div>
+
+    <div id="applyWrap" class="apply-layout hidden">
+      <div class="apply-form-col">
+        <form id="applyForm" action="#" method="post" onsubmit="return false;">
+          <div class="apply-question">
+            <label class="apply-label">1. 소속 교단은? <span class="required">*</span></label>
+            <p class="apply-hint">(예수교대한성결교회만 지원 가능합니다.)</p>
+            <input type="text" id="denomination" name="denomination" placeholder="내 답변" required />
+          </div>
+          <div class="apply-question">
+            <label class="apply-label">2. 교회 이름은? <span class="required">*</span></label>
+            <p class="apply-hint">(예)섬김초대교회</p>
+            <input type="text" id="churchName" name="churchName" placeholder="내 답변" required />
+          </div>
+          <div class="apply-question">
+            <label class="apply-label">3. 담임목사님 성함은? <span class="required">*</span></label>
+            <p class="apply-hint">(예)김바울 목사</p>
+            <input type="text" id="pastorName" name="pastorName" placeholder="내 답변" required />
+          </div>
+          <div class="apply-question">
+            <label class="apply-label">4. 교회 주소는? <span class="required">*</span></label>
+            <p class="apply-hint">「주소 찾기」 버튼을 클릭하여 주소를 선택해 주세요. (직접 입력 불가)</p>
+            <div class="address-input-row">
+              <input type="text" id="churchAddress" name="churchAddress" placeholder="주소 찾기를 클릭하세요" required readonly />
+              <button type="button" class="btn btn-outline btn-address-search" id="btnSearchAddress">주소 찾기</button>
+            </div>
+          </div>
+          <div class="apply-question">
+            <label class="apply-label">5. 바이블 올림피아드 사역 담당자 이름과 직분과 휴대폰은? <span class="required">*</span></label>
+            <p class="apply-hint">(예) 이찬양 / 전도사 / 010-1111-5555</p>
+            <div class="contact-table-wrap">
+              <table class="contact-table">
+                <thead>
+                  <tr>
+                    <th>이름</th>
+                    <th>직분</th>
+                    <th>휴대폰(숫자만등록)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="text" id="contactName" name="contactName" placeholder="이름" required /></td>
+                    <td><input type="text" id="contactPosition" name="contactPosition" placeholder="직분" required /></td>
+                    <td><input type="tel" id="contactPhone" name="contactPhone" placeholder="010-1234-5678" maxlength="13" required /></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="apply-question apply-section-applicants apply-section-deferred" id="sectionApplicants">
+            <div class="applicants-head-row">
+              <label class="apply-label" id="labelApplicants">6. 지원자</label>
+              <button type="button" class="btn btn-primary btn-icon-add" id="btnAddApplicant" title="지원자 추가">+</button>
+            </div>
+            <div class="applicants-table-wrap">
+              <table class="applicants-table">
+                <thead>
+                  <tr>
+                    <th class="cell-required">응시구분</th>
+                    <th class="cell-required">응시자</th>
+                    <th class="cell-required">휴대폰(숫자만등록)</th>
+                    <th class="cell-required">응시비 입금시 기록 내용</th>
+                    <th class="hide-col">참가비확인여부</th>
+                    <th class="cell-required">참가여부</th>
+                    <th>환불요청</th>
+                    <th class="th-action">삭제</th>
+                  </tr>
+                </thead>
+                <tbody id="applicantsTbody">
+                  <tr class="applicants-empty" id="applicantsEmpty">
+                    <td colspan="8" class="text-muted">지원자를 추가해 주세요.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <p class="form-actions-note">
+              ※ 환불요청은 입금확인후에만 등록이 가능함<br />
+              ※ 삭제는 입금확인후에는 없어짐
+            </p>
+            <button type="submit" id="btnSubmitApply" class="btn btn-primary">제출</button>
+          </div>
+        </form>
+      </div>
+      <aside class="apply-desc-col desc-hidden" id="applyDescCol" aria-hidden="true">
+        <div class="apply-desc-box">
+          <h3 class="apply-desc-title">■ 설명</h3>
+          <section class="apply-desc-section">
+            <h4>1. 소속교단</h4>
+            <p>1) "예수교대한성결교회" full 명칭으로 기입하도록 함.</p>
+          </section>
+          <section class="apply-desc-section">
+            <h4>2. 교회이름</h4>
+            <p>1) 맨뒤에 교회가 붙어야 등록 되어야 함</p>
+            <p>2) 기존에 등록된 교회를 찾을 수 있으면 좋겠음</p>
+            <div class="church-table-wrap">
+              <table class="church-table">
+                <thead>
+                  <tr>
+                    <th>선택</th>
+                    <th>교회명</th>
+                    <th>담임목사</th>
+                    <th>교회주소</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="radio" name="churchSelect" value="" aria-label="선택" /></td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td><input type="radio" name="churchSelect" value="" aria-label="선택" /></td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="apply-desc-note">교회가 없으면 수작업 등록함</p>
+          </section>
+          <section class="apply-desc-section">
+            <h4>3. 담임목사님 성함</h4>
+          </section>
+          <section class="apply-desc-section">
+            <h4>4. 교회 주소</h4>
+            <p>1) 「주소 찾기」 버튼을 누르면 카카오(다음) 우편번호 서비스 API로 도로명·지번 주소를 검색할 수 있습니다.</p>
+          </section>
+          <section class="apply-desc-section">
+            <h4>5. 바이블 올림피아드 사역 담당자 이름과 직분과 휴대폰</h4>
+            <p>이름, 직분, 휴대폰(숫자만 등록, 입력 후 010-XXXX-XXXX 형식으로 자동 표시)을 각각 입력합니다.</p>
+          </section>
+          <section class="apply-desc-section">
+            <h4>6. 지원자</h4>
+            <p>응시구분, 응시자, 휴대폰(숫자만 등록, 010-XXXX-XXXX 자동 표시), 응시비 입금시 기록 내용을 입력하고 + 버튼으로 여러 명을 추가할 수 있습니다.</p>
+          </section>
+        </div>
+      </aside>
+    </div>
+    <div id="submitResult" class="hidden"></div>
+  </main>
+
+  <footer class="footer">
+    <p>© 전국 바이블 올림피아드</p>
+  </footer>
+
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script type="module" src="/js/firebase-config.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/apply.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "hosting": {
+    "public": "public",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "/api/**",
+        "function": {
+          "functionId": "olympia_api",
+          "region": "asia-northeast3"
+        }
+      }
+    ]
+  },
+  "storage":{"rules":"storage.rules"},"firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": ["__pycache__", "*.pyc", ".env", "venv", "*.md"],
+      "predeploy": ["node scripts/ensure-functions-venv.js"]
+    }
+  ]
+}

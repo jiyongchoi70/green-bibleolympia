@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%234a90d9' width='32' height='32' rx='4'/%3E%3Cpath fill='white' d='M10 8h4v16h-4V8zm8 0h4v16h-4V8zm-4 2v12l6-6-6-6z'/%3E%3C/svg%3E" />
+  <title>BTA 로그인 - 전국 바이블 올림피아드</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span>BTA</span>
+      <span class="logo-plus">+</span>
+      <span>GT</span>
+    </div>
+    <h1 class="auth-title">BTA 로그인</h1>
+
+    <form id="loginForm" class="auth-form">
+      <div class="input-wrap">
+        <svg class="input-icon icon-email" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <input type="email" id="email" placeholder="이메일" required autocomplete="email" />
+      </div>
+      <div class="input-wrap">
+        <svg class="input-icon icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="password" placeholder="비밀번호" required autocomplete="current-password" />
+        <button type="button" class="btn-toggle-pw" id="togglePw" aria-label="비밀번호 표시">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div id="authError" class="auth-error" style="display:none;"></div>
+      <button type="submit" class="btn-submit" id="btnSubmit">로그인</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="/password-reset.html" class="link-block">비밀번호를 잊으셨나요?</a>
+      <span>계정이 없으신가요? </span><a href="/signup.html" class="link-accent">회원가입</a>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>

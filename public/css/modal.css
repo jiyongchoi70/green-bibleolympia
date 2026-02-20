@@ -1,0 +1,54 @@
+/* 커스텀 알림 모달 - 브라우저 alert 대체 */
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+.app-modal-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.app-modal-box {
+  background: var(--color-surface, #1a2332);
+  border: 1px solid var(--color-border, #2d3a4d);
+  border-radius: var(--radius, 8px);
+  box-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.3));
+  min-width: 280px;
+  max-width: 90vw;
+  padding: 1.25rem 1.5rem;
+  text-align: center;
+}
+.app-modal-message {
+  margin: 0 0 1.25rem;
+  color: var(--color-text, #e6edf3);
+  font-size: 1rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.app-modal-btn {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary, #58a6ff);
+  border: none;
+  border-radius: var(--radius, 8px);
+  cursor: pointer;
+  font-family: inherit;
+}
+.app-modal-btn:hover {
+  background: var(--color-primary-hover, #79b8ff);
+}
+.app-modal-btn:focus {
+  outline: 2px solid var(--color-primary, #58a6ff);
+  outline-offset: 2px;
+}

@@ -1,0 +1,43 @@
+/* 관리자 공통 스타일 (메뉴별 HTML에서 공유) */
+.panel-head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.panel-head-row h3, .panel-head-row h4 { margin: 0; }
+.btn-icon-add { width: 2.5rem; height: 2.5rem; padding: 0; font-size: 1.25rem; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.cell-required, .label-required { text-decoration: underline; text-decoration-color: var(--color-danger); }
+.admin-form-box { margin-top: 1.5rem; padding: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); max-width: 400px; }
+.admin-form-box .form-box-label { margin: 0 0 0.75rem; font-size: 0.875rem; color: var(--color-text-muted); }
+.admin-form-box .form-row { margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+.admin-form-box .form-row label { min-width: 10rem; font-size: 0.875rem; }
+.admin-form-box .form-row input, .admin-form-box .form-row select { flex: 1; padding: 0.4rem 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-text); }
+.admin-form-box .btn { margin-right: 0.5rem; margin-top: 0.5rem; }
+.icon-edit { margin-right: 0.25rem; }
+.text-muted { color: var(--color-text-muted); font-size: 0.875rem; }
+.table-wrap-wide { min-width: 100%; overflow-x: auto; }
+body .main { max-width: 1200px; }
+.common-codes-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; }
+@media (max-width: 900px) { .common-codes-layout { grid-template-columns: 1fr; } }
+.common-codes-col { min-width: 0; }
+.table-wrap-common { max-height: 320px; overflow-y: auto; overflow-x: auto; }
+.table-wrap-common table { min-width: 100%; }
+.row-lookup-type.selected { background: var(--color-surface); }
+.row-lookup-type { cursor: pointer; }
+.users-toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem; margin-bottom: 1rem; }
+.users-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+.users-filters label { font-size: 0.875rem; color: var(--color-text-muted); }
+.users-filters input, .users-filters select { padding: 0.4rem 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-text); min-width: 120px; }
+.users-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; flex: 1; min-width: 0; }
+.users-actions-right { margin-left: auto; display: flex; gap: 0.5rem; flex-shrink: 0; }
+.table-wrap-users { margin-top: 0.5rem; }
+.table-wrap-users table { min-width: 100%; }
+.table-wrap-users td input, .table-wrap-users td select { width: 100%; max-width: 100%; padding: 0.35rem 0.5rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-text); box-sizing: border-box; }
+.table-wrap-users td input.readonly, .table-wrap-users td .cell-readonly { border-color: transparent; background: transparent; }
+.admin-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.admin-nav a { padding: 0.5rem 1rem; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); border-radius: var(--radius); text-decoration: none; }
+.admin-nav a:hover { background: var(--color-bg); }
+.admin-nav a.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.admin-dashboard .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.admin-dashboard .card { display: block; padding: 1.25rem; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); text-decoration: none; color: inherit; }
+.admin-dashboard .card:hover { border-color: var(--color-primary); }
+
+/* 초기화 버튼: 빨간 배경 */
+.btn-reset { background: #c00 !important; border-color: #c00 !important; color: #fff !important; }
+.btn-reset:hover { background: #e00 !important; border-color: #e00 !important; color: #fff !important; }

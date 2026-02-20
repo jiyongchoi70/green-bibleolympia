@@ -1,0 +1,362 @@
+/**
+ * 신청서 페이지 - 이미지 참조 다크 테마
+ */
+.main-apply .main {
+  max-width: 960px;
+  background: #1A2F45;
+  padding: 2rem 1.5rem;
+  border-radius: 8px;
+}
+
+.main-apply .page-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.apply-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+/* 설명 영역 숨김 (나중에 사용) */
+.apply-desc-col.desc-hidden,
+.desc-hidden {
+  display: none !important;
+}
+
+.apply-form-col {
+  min-width: 0;
+}
+
+.apply-question {
+  margin-bottom: 1.75rem;
+}
+
+.apply-question .apply-label {
+  display: block;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  margin-bottom: 0.35rem;
+  color: #fff;
+}
+
+.apply-question .required {
+  color: var(--color-danger);
+}
+
+.apply-question .apply-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.8125rem;
+  color: #b0b0b0;
+}
+
+.apply-question input {
+  width: 100%;
+  max-width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #27364C;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #fff;
+  min-height: 46px;
+  box-sizing: border-box;
+}
+
+.apply-question input::placeholder {
+  color: #9ca3af;
+}
+
+.apply-question input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: #2f4058;
+}
+
+/* 4. 교회 주소 행 */
+.address-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+.address-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.address-input-row .btn-address-search {
+  flex-shrink: 0;
+  min-height: 46px;
+  padding: 0.65rem 1.1rem;
+  background: #3a3a40;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.address-input-row .btn-address-search:hover {
+  background: #45454d;
+}
+
+.address-input-row input[readonly] {
+  cursor: default;
+  background: #27364C;
+}
+
+/* 5. 사역 담당자 테이블 */
+.contact-table-wrap {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.contact-table {
+  width: 100%;
+  max-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.contact-table th,
+.contact-table td {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-align: left;
+  background: #25252b;
+}
+
+.contact-table th {
+  font-weight: 700;
+  color: #fff;
+  background: #2a2a32;
+  font-size: 0.875rem;
+}
+
+.contact-table td {
+  background: #1e1e24;
+}
+
+.contact-table input {
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
+  background: #27364C;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #fff;
+  width: 100%;
+}
+
+.contact-table input::placeholder {
+  color: #8b949e;
+}
+
+/* 6. 지원자 */
+.apply-section-applicants {
+  margin-top: 1.75rem;
+}
+
+.apply-section-applicants.apply-section-deferred {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
+}
+
+.applicants-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.applicants-head-row .apply-label {
+  margin-bottom: 0;
+}
+
+.apply-deadline-closed {
+  color: #e74c3c;
+}
+
+.btn-icon-add {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #007bff !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-icon-add:hover {
+  background: #0069d9 !important;
+}
+
+.applicants-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+.applicants-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.applicants-table th,
+.applicants-table td {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  text-align: left;
+  background: #25252b;
+}
+
+.applicants-table th {
+  font-weight: 700;
+  color: #fff;
+  background: #2a2a32;
+  font-size: 0.875rem;
+}
+
+.applicants-table th.cell-required,
+.applicants-table td.cell-readonly {
+  text-decoration: none;
+}
+
+.applicants-table .cell-readonly {
+  color: #8b949e;
+  background: #25252b;
+}
+
+.applicants-table th.hide-col,
+.applicants-table td.hide-col {
+  display: none;
+}
+
+.applicants-table input,
+.applicants-table select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: #27364C;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #fff;
+  min-height: 40px;
+}
+
+.applicants-table input::placeholder {
+  color: #9ca3af;
+}
+
+.applicants-table .btn-remove-applicant {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.8125rem;
+  background: #3a3a40;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #fff;
+  border-radius: 6px;
+}
+
+.applicants-table .btn-remove-applicant:hover {
+  background: #4a4a50;
+}
+
+.applicants-table .text-muted {
+  color: #8b949e;
+  font-size: 0.875rem;
+}
+
+.applicants-table tr.applicants-empty td {
+  text-align: center;
+}
+
+/* 컬럼 너비 */
+.applicants-table th:nth-child(2),
+.applicants-table td:nth-child(2) {
+  width: 8rem;
+  max-width: 8rem;
+}
+
+.applicants-table th:nth-child(3),
+.applicants-table td:nth-child(3) {
+  width: 10.5rem;
+  max-width: 10.5rem;
+}
+
+.applicants-table th:nth-child(4),
+.applicants-table td:nth-child(4) {
+  width: 10rem;
+  max-width: 10rem;
+}
+
+.applicants-table th:nth-child(6),
+.applicants-table th:nth-child(7) {
+  white-space: nowrap;
+}
+
+.applicants-table td:nth-child(6),
+.applicants-table td:nth-child(7) {
+  min-width: 5.5rem;
+}
+
+.applicants-table .th-action {
+  width: 4rem;
+  min-width: 4rem;
+}
+
+/* 제출/수정 버튼 - 첫 번째 이미지: 선명한 라이트 블루, 테두리 없음 */
+.main-apply .form-actions {
+  margin-top: 2rem;
+}
+
+.main-apply .form-actions-note {
+  font-size: 0.875rem;
+  color: var(--color-text-muted, #888);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.main-apply .form-actions .btn-primary {
+  min-height: 46px;
+  padding: 0.7rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  background: #4da6ff !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.main-apply .form-actions .btn-primary:hover {
+  background: #6bb5ff !important;
+}
+
+.main-apply .form-actions .btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 알림 박스 (로그인 유도) - 두 번째 이미지 참조: 어두운 블루 박스 + 밝은 블루 테두리 */
+.main-apply .alert-info {
+  background: rgba(30, 58, 95, 0.5);
+  border: 1px solid #58a6ff;
+  color: #79b8ff;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
