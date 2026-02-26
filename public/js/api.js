@@ -125,6 +125,12 @@ export const admin = {
     update: (id, body) => api(`/api/admin/announcements/${id}`, { method: "PUT", body: JSON.stringify(body) }),
     delete: (id) => api(`/api/admin/announcements/${id}`, { method: "DELETE" }),
   },
+  customerservice: {
+    list: () => api("/api/admin/customerservice"),
+    create: (body) => api("/api/admin/customerservice", { method: "POST", body: JSON.stringify(body) }),
+    update: (id, body) => api(`/api/admin/customerservice/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    delete: (id) => api(`/api/admin/customerservice/${id}`, { method: "DELETE" }),
+  },
   commonCodes: {
     list: () => api("/api/admin/common-codes"),
     create: (body) => api("/api/admin/common-codes", { method: "POST", body: JSON.stringify(body) }),

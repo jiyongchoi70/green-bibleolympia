@@ -698,6 +698,13 @@ def admin_lookup_options():
 
 # ---------- 관리자: 사용자 ----------
 
+def _bo_user_display_name(data):
+    """bo_users 문서에서 표시명 반환: displayName > Name > eMail (작성자 등 표시용)."""
+    if not data:
+        return ""
+    return (data.get("displayName") or data.get("Name") or data.get("eMail") or "").strip()
+
+
 def _ymd_to_int(ymd):
     """YYYYMMDD 문자열을 정수로 (비교용)."""
     if not ymd:
@@ -751,6 +758,16 @@ def _resolve_lookup_140_from_docs(lookup_docs, value_cd, create_ymd):
         if start_int is not None and end_int is not None and create_int and start_int <= create_int <= end_int:
             return nm
     return first_nm
+
+
+def _get_lookup_value_name(type_cd, value_cd, create_ymd):
+    """bo_lookup_value에서 type_cd, value_cd, create_ymd(기간) 기준 value_nm 반환. C/S 구분(150) 등."""
+    if value_cd is None or value_cd == "":
+        return ""
+    db = get_db()
+    ref = db.collection("bo_lookup_value").where("type_cd", "==", str(type_cd))
+    docs = list(ref.stream())
+    return _resolve_lookup_140_from_docs(docs, value_cd, create_ymd)
 
 
 @app.route("/api/admin/users", methods=["GET", "OPTIONS"])
@@ -978,6 +995,91 @@ def admin_announcement_detail(doc_id):
     return _json_response({"ok": True}, 200)
 
 
+# ---------- 관리자: C/S 요청 (bo_customerservice) ----------
+
+def _today_ymd_str():
+    """한국 시간 기준 오늘 YYYYMMDD"""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("Asia/Seoul")).strftime("%Y%m%d")
+
+
+@app.route("/api/admin/customerservice", methods=["GET", "POST", "OPTIONS"])
+def admin_customerservice_list():
+    if request.method == "OPTIONS":
+        return ("", 204, _cors_headers())
+    decoded = _get_decoded_token()
+    if not decoded:
+        return _json_response({"error": "인증이 필요합니다."}, 401)
+    uid = decoded.get("uid")
+    if not _require_admin(uid, decoded):
+        return _json_response({"error": "관리자 권한이 필요합니다."}, 403)
+    db = get_db()
+    coll = db.collection("bo_customerservice")
+    if request.method == "GET":
+        ref = coll.order_by("createdAt", direction=_firestore().Query.DESCENDING)
+        docs = ref.stream()
+        items = [{"id": d.id, **d.to_dict()} for d in docs]
+        uids = list({(it.get("create_user") or "").strip() for it in items if (it.get("create_user") or "").strip()})
+        if uids:
+            user_names = {}
+            for i in range(0, len(uids), 30):
+                chunk = uids[i : i + 30]
+                refs = [db.collection("bo_users").document(uid) for uid in chunk]
+                for ref_u, uid in zip(db.get_all(refs), chunk):
+                    if ref_u.exists:
+                        d = ref_u.to_dict()
+                        user_names[uid] = _bo_user_display_name(d)
+            for it in items:
+                it["create_user_name"] = user_names.get((it.get("create_user") or "").strip(), "")
+        lookup_150_docs = list(db.collection("bo_lookup_value").where("type_cd", "==", "150").stream())
+        for it in items:
+            it["customerservice_cd_name"] = _resolve_lookup_140_from_docs(
+                lookup_150_docs,
+                it.get("customerservice_cd"),
+                it.get("create_ymd"),
+            )
+        return _json_response({"items": items})
+    data = request.get_json() or {}
+    today_ymd = _today_ymd_str()
+    data.pop("create_user", None)
+    data.pop("update_user", None)
+    data["create_user"] = uid
+    data["create_ymd"] = data.get("create_ymd") or today_ymd
+    data["update_user"] = uid
+    data["update_ymd"] = today_ymd
+    data["createdAt"] = _firestore().SERVER_TIMESTAMP
+    ref = coll.document()
+    ref.set(data)
+    return _json_response({"id": ref.id, **data}, 201)
+
+
+@app.route("/api/admin/customerservice/<doc_id>", methods=["PUT", "DELETE", "OPTIONS"])
+def admin_customerservice_detail(doc_id):
+    if request.method == "OPTIONS":
+        return ("", 204, _cors_headers())
+    decoded = _get_decoded_token()
+    if not decoded:
+        return _json_response({"error": "인증이 필요합니다."}, 401)
+    uid = decoded.get("uid")
+    if not _require_admin(uid, decoded):
+        return _json_response({"error": "관리자 권한이 필요합니다."}, 403)
+    ref = get_db().collection("bo_customerservice").document(doc_id)
+    if request.method == "PUT":
+        data = request.get_json() or {}
+        data.pop("create_user", None)
+        data.pop("update_user", None)
+        data["update_user"] = uid
+        email = (decoded.get("email") or "").strip().lower()
+        if email != "jiyong-choi@hanmail.net":
+            data["update_ymd"] = _today_ymd_str()
+        data["update_date"] = _firestore().SERVER_TIMESTAMP
+        ref.update(data)
+        return _json_response({"id": doc_id, **ref.get().to_dict()})
+    ref.delete()
+    return _json_response({"ok": True}, 200)
+
+
 # ---------- 관리자: 공통코드 ----------
 
 @app.route("/api/common-codes", methods=["GET", "OPTIONS"])
@@ -1041,7 +1143,8 @@ def _run_daily_report_email():
     Resend API 사용. RESEND_API_KEY, RESEND_FROM_EMAIL 환경변수 필요.
     """
     import logging
-    from datetime import date, timedelta
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
     import requests
 
     logger = logging.getLogger(__name__)
@@ -1052,8 +1155,10 @@ def _run_daily_report_email():
         return
 
     db = get_db()
-    today_ymd = date.today().strftime("%Y-%m-%d")  # 메일 본문 표시용
-    yesterday_ymd = (date.today() - timedelta(days=1)).strftime("%Y%m%d")  # Firestore 조회용(create_ymd)
+    # 스케줄 08:00 KST 기준으로 "오늘"을 한국 날짜로 사용 (UTC 사용 시 전날로 표시되는 문제 방지)
+    now_kst = datetime.now(ZoneInfo("Asia/Seoul"))
+    today_ymd = now_kst.strftime("%Y-%m-%d")  # 메일 제목·본문 표시용
+    yesterday_ymd = (now_kst.date() - timedelta(days=1)).strftime("%Y%m%d")  # Firestore 조회용(create_ymd)
 
     # 수신자: bo_users where emailyn == '100'
     recipients = []
@@ -1119,6 +1224,112 @@ def _run_daily_report_email():
             logger.info("daily report email sent to %d recipients", len(recipients))
     except Exception as e:
         logger.exception("daily report email failed: %s", e)
+
+    # ---------- C/S 요청 메일 (조건 1: create_ymd·update_ymd 어제 → jiyong-choi@hanmail.net / 조건 2: start_ymd·end_ymd 둘 다 어제 → 작성자) ----------
+    def _ymd_display(ymd):
+        if not ymd or len(str(ymd).strip()) < 8:
+            return ""
+        s = str(ymd).strip().replace("-", "")[:8]
+        return f"{s[:4]}-{s[4:6]}-{s[6:8]}" if len(s) == 8 else ""
+
+    def _build_cs_table(rows):
+        if not rows:
+            return "<p>해당 건이 없습니다.</p>"
+        head = "<tr><th>순서</th><th>구분</th><th>제목</th><th>제출일</th><th>접수일</th><th>완료일</th><th>작성자</th></tr>"
+        body = ""
+        for i, r in enumerate(rows, 1):
+            title = (r.get("title") or "").strip() or "—"
+            cd = (r.get("customerservice_cd_name") or r.get("customerservice_cd") or "").strip() or "—"
+            body += "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(
+                i,
+                cd,
+                title.replace("<", "&lt;").replace(">", "&gt;"),
+                _ymd_display(r.get("create_ymd")),
+                _ymd_display(r.get("start_ymd")),
+                _ymd_display(r.get("end_ymd")),
+                (r.get("create_user_name") or "").strip() or "—",
+            )
+        return "<table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse;'><thead>" + head + "</thead><tbody>" + body + "</tbody></table>"
+
+    cs_coll = db.collection("bo_customerservice")
+    lookup_150_docs = list(db.collection("bo_lookup_value").where("type_cd", "==", "150").stream())
+    # 조건 1: create_ymd == 어제 또는 update_ymd == 어제
+    cond1_by_id = {}
+    for d in cs_coll.where("create_ymd", "==", yesterday_ymd).stream():
+        cond1_by_id[d.id] = d.to_dict()
+    for d in cs_coll.where("update_ymd", "==", yesterday_ymd).stream():
+        if d.id not in cond1_by_id:
+            cond1_by_id[d.id] = d.to_dict()
+    cond1_docs = list(cond1_by_id.values())
+    if cond1_docs:
+        # 구분 명칭(value_nm) 및 작성자명 보강
+        for row in cond1_docs:
+            row["customerservice_cd_name"] = _resolve_lookup_140_from_docs(
+                lookup_150_docs, row.get("customerservice_cd"), row.get("create_ymd")
+            )
+            uid_cs = (row.get("create_user") or "").strip()
+            if uid_cs:
+                bu = db.collection("bo_users").document(uid_cs).get()
+                if bu.exists:
+                    row["create_user_name"] = _bo_user_display_name(bu.to_dict())
+        cs_subject = "C/S 요청사항 내용입니다. (" + today_ymd + ")"
+        cs_html = "<div><p><strong>제목: C/S 요청사항 내용입니다.</strong></p>" + _build_cs_table(cond1_docs) + "</div>"
+        try:
+            r1 = requests.post("https://api.resend.com/emails", json={
+                "from": from_email,
+                "to": ["jiyong-choi@hanmail.net"],
+                "subject": cs_subject,
+                "html": cs_html,
+            }, headers=headers, timeout=30)
+            if r1.status_code >= 400:
+                logger.error("Resend C/S cond1 error: %s %s", r1.status_code, r1.text)
+            else:
+                logger.info("daily report C/S cond1 email sent to jiyong-choi@hanmail.net")
+        except Exception as e1:
+            logger.exception("daily report C/S cond1 email failed: %s", e1)
+
+    # 조건 2: start_ymd == 어제 또는 end_ymd == 어제 → 작성자(create_user)별로 묶어 해당 이메일로 1통씩 발송
+    cond2_by_id = {}
+    for d in cs_coll.where("start_ymd", "==", yesterday_ymd).stream():
+        cond2_by_id[d.id] = d.to_dict()
+    for d in cs_coll.where("end_ymd", "==", yesterday_ymd).stream():
+        if d.id not in cond2_by_id:
+            cond2_by_id[d.id] = d.to_dict()
+    cond2_docs = list(cond2_by_id.values())
+    if cond2_docs:
+        by_uid = {}
+        for data in cond2_docs:
+            uid_cs = (data.get("create_user") or "").strip()
+            if uid_cs:
+                data["customerservice_cd_name"] = _resolve_lookup_140_from_docs(
+                    lookup_150_docs, data.get("customerservice_cd"), data.get("create_ymd")
+                )
+                by_uid.setdefault(uid_cs, []).append(data)
+        seen_emails = set()
+        for uid_cs, rows in by_uid.items():
+            bu = db.collection("bo_users").document(uid_cs).get()
+            email = (bu.to_dict().get("eMail") or "").strip() if bu.exists else ""
+            if not email or "@" not in email or email in seen_emails:
+                continue
+            seen_emails.add(email)
+            user_name = _bo_user_display_name(bu.to_dict())
+            for r in rows:
+                r["create_user_name"] = user_name
+            cs_subject2 = "C/S 요청사항 내용입니다. (" + today_ymd + ")"
+            cs_html2 = "<div><p><strong>제목: C/S 요청사항 내용입니다.</strong></p>" + _build_cs_table(rows) + "</div>"
+            try:
+                r2 = requests.post("https://api.resend.com/emails", json={
+                    "from": from_email,
+                    "to": [email],
+                    "subject": cs_subject2,
+                    "html": cs_html2,
+                }, headers=headers, timeout=30)
+                if r2.status_code >= 400:
+                    logger.error("Resend C/S cond2 error for %s: %s %s", email, r2.status_code, r2.text)
+                else:
+                    logger.info("daily report C/S cond2 email sent to %s", email)
+            except Exception as e2:
+                logger.exception("daily report C/S cond2 email failed for %s: %s", email, e2)
 
 
 # ---------- Cloud Functions 진입점 ----------

@@ -294,6 +294,10 @@ if (!gridDom) {
       domLayout: "normal",
       enableCellTextSelection: true,
       suppressRowClickSelection: false,
+      // 페이지네이션 (클라이언트 사이드: 전체 데이터 로드 후 표시만 분할, 엑셀 다운로드는 전체 유지)
+      pagination: true,
+      paginationPageSize: 100,
+      paginationPageSizeSelector: [25, 50, 100, 200],
     };
     if (typeof agGrid !== "undefined") {
       if (typeof agGrid.createGrid === "function") {

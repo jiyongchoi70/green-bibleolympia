@@ -161,6 +161,39 @@ firebase deploy --only functions
 
 관리자 API는 Firebase ID 토큰의 custom claim `admin: true`가 있을 때만 사용 가능합니다.
 
+## Git 원격 저장소 (터미널)
+
+Cursor UI 대신 **터미널**에서 원격을 등록하려면 아래 중 하나를 사용하세요.
+
+### 방법 1: 스크립트 실행 (권장)
+
+프로젝트 폴더에서 터미널을 연 뒤:
+
+**PowerShell**
+```powershell
+cd c:\MyProject\BTA\bible_olympia
+.\scripts\git-remote-add.ps1
+```
+
+**명령 프롬프트(cmd)**
+```cmd
+cd c:\MyProject\BTA\bible_olympia
+scripts\git-remote-add.bat
+```
+
+- 기존 `origin`이 있으면 제거한 뒤, `https://github.com/jiyongchoi70/green-bibleolympia.git` 로 다시 등록합니다.
+
+### 방법 2: 명령어 직접 입력
+
+```bash
+cd c:\MyProject\BTA\bible_olympia
+git remote remove origin
+git remote add origin https://github.com/jiyongchoi70/green-bibleolympia.git
+git remote -v
+```
+
+- **원격 이름**은 반드시 `origin`, **URL**은 위 주소 그대로 입력해야 합니다. (이름 자리에 URL을 넣으면 오류가 납니다.)
+
 ## 라이선스
 
 © 전국 바이블 올림피아드

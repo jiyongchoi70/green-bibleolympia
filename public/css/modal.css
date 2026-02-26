@@ -52,3 +52,24 @@
   outline: 2px solid var(--color-primary, #58a6ff);
   outline-offset: 2px;
 }
+.app-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.app-modal-btn.app-modal-cancel {
+  background: transparent;
+  color: var(--color-text-muted, #8b949e);
+  border: 1px solid var(--color-border, #2d3a4d);
+}
+.app-modal-btn.app-modal-cancel:hover {
+  background: var(--color-surface-hover, #21262d);
+  color: var(--color-text, #e6edf3);
+}
+.app-modal-btn.app-modal-confirm {
+  background: var(--color-primary, #58a6ff);
+}
+.app-modal-btn.app-modal-confirm:hover {
+  background: var(--color-primary-hover, #79b8ff);
+}

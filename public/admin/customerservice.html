@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%234a90d9' width='32' height='32' rx='4'/%3E%3Cpath fill='white' d='M10 8h4v16h-4V8zm8 0h4v16h-4V8zm-4 2v12l6-6-6-6z'/%3E%3C/svg%3E" />
+  <title>C/S 요청 - 관리자</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/admin.css" />
+  <link rel="stylesheet" href="/css/admin-applications.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
+  <link rel="stylesheet" href="https://cdn.quilljs.com/1.3.7/quill.snow.css" />
+  <style>
+    .cs-quill-wrap .ql-toolbar, .cs-quill-wrap .ql-container { box-sizing: border-box; }
+    .cs-quill-wrap .ql-editor { min-height: 200px; background: var(--color-bg, #1e1e1e); color: var(--color-text, #e6edf3); }
+    .cs-quill-wrap .ql-toolbar { background: var(--color-surface, #252525); border-color: var(--color-border, #333); }
+    .cs-quill-wrap .ql-container { border-color: var(--color-border, #333); }
+    .cs-table-wrap { overflow-x: auto; margin-top: 1rem; }
+    .cs-table-wrap table { width: 100%; border-collapse: collapse; }
+    .cs-table-wrap th, .cs-table-wrap td { border: 1px solid var(--color-border); padding: 0.5rem 0.6rem; text-align: left; }
+    .cs-table-wrap th { background: var(--color-surface); }
+    /* C/S 등록 폼: 담당자 목록 조회조건과 동일 스타일, 좌우 배치 */
+    .cs-form-modal .cs-form-filters {
+      padding: 1rem;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+    }
+    .cs-form-modal .cs-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.5rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .cs-form-modal .cs-form-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 160px;
+      max-width: 480px;
+    }
+    .cs-form-modal .cs-form-group-full { flex: 1 1 100%; max-width: none; }
+    .cs-form-modal .cs-form-row label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      min-width: 4rem;
+      flex-shrink: 0;
+    }
+    .cs-form-modal .cs-form-row input,
+    .cs-form-modal .cs-form-row select,
+    .cs-form-modal .cs-form-row .cs-quill-wrap {
+      padding: 0.4rem 0.5rem;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      color: var(--color-text);
+      min-width: 120px;
+      box-sizing: border-box;
+      flex: 1;
+    }
+    /* 접수일/완료일: jiyong-choi@hanmail.net 이 아닐 때 작성일/작성자처럼 선택·클릭 불가, 달력 미표시 */
+    .cs-form-modal input.cs-date-readonly {
+      opacity: 0.85;
+      cursor: default;
+      pointer-events: none;
+      user-select: none;
+    }
+    .cs-form-modal .cs-form-group-full .cs-quill-wrap { min-width: 0; flex: 1; }
+    /* 내용 행: 라벨 위, 에디터 아래 전체 너비(두 번째 이미지처럼 왼쪽 정렬) */
+    .cs-form-modal .cs-form-row-content {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.35rem;
+      margin-bottom: 0.75rem;
+    }
+    .cs-form-modal .cs-form-row-content > label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+      flex: none;
+    }
+    .cs-form-modal .cs-form-row-content > .cs-quill-wrap {
+      width: 100%;
+      min-width: 0;
+      flex: none;
+      max-width: none;
+    }
+    .cs-form-modal .cs-form-row-content .ql-toolbar { border-radius: var(--radius) var(--radius) 0 0; }
+    .cs-form-modal .cs-form-row-content .ql-container { border-radius: 0 0 var(--radius) var(--radius); border: 1px solid var(--color-border); border-top: none; }
+    .cs-form-modal .cs-form-row-content .ql-editor { min-height: 200px; text-align: left; }
+    .cs-form-modal .cs-form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      justify-content: flex-end;
+    }
+    .cs-form-progress-wrap {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0;
+    }
+    .cs-form-progress-wrap.hidden {
+      display: none;
+    }
+    .cs-form-progress-bar {
+      height: 6px;
+      background: var(--color-surface);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .cs-form-progress-bar span {
+      display: block;
+      height: 100%;
+      width: 30%;
+      background: var(--color-primary, #4a90d9);
+      border-radius: 3px;
+      animation: cs-progress 1.2s ease-in-out infinite;
+    }
+    @keyframes cs-progress {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(433%); }
+    }
+    .cs-form-progress-text {
+      margin: 0.35rem 0 0;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    .cs-attachment-area { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+    .cs-file-input { padding: 0.35rem 0; }
+    .cs-attachment-list { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+    .cs-attachment-item {
+      display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem;
+      background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius);
+      font-size: 0.875rem;
+    }
+    .cs-attachment-item a { color: var(--color-link, #58a6ff); text-decoration: none; }
+    .cs-attachment-item a:hover { text-decoration: underline; }
+    .cs-attachment-item .cs-attach-remove { cursor: pointer; color: var(--color-text-muted); padding: 0 0.2rem; }
+    .cs-attachment-item .cs-attach-remove:hover { color: var(--color-text); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1><a href="/" style="color:inherit;text-decoration:none;">전국 바이블 올림피아드 - 관리자</a></h1>
+    <nav class="nav-main">
+      <a href="/">홈</a>
+      <a href="/apply.html">신청서</a>
+      <a href="/status.html">신청현황</a>
+    </nav>
+    <div class="auth-status" id="authStatus">
+      <span id="userEmail"></span>
+      <button type="button" id="btnLogout" class="btn btn-outline" style="display:none;">로그아웃</button>
+      <a href="/login.html" id="btnLogin" class="btn btn-primary" style="display:inline-block;">로그인</a>
+    </div>
+  </header>
+
+  <main class="main">
+    <h2 class="page-title">관리자</h2>
+    <div id="needLogin" class="alert alert-info">
+      관리자 페이지는 로그인 후 이용할 수 있습니다. (관리자 권한 필요)
+    </div>
+    <div id="adminContent" class="hidden">
+      <div id="adminCheckMessage" class="alert hidden" style="margin-bottom:1rem;" role="status"></div>
+      <nav class="admin-nav">
+        <a href="index.html">메뉴</a>
+        <a href="applications.html">신청 목록</a>
+        <a href="contact-list.html">담당자 목록</a>
+        <a href="users.html">사용자(권한부여)</a>
+        <a href="announcements.html">공고내용</a>
+        <a href="common-codes.html">공통코드</a>
+        <a href="customerservice.html" class="active">C/S 요청</a>
+      </nav>
+      <h3>C/S 요청</h3>
+
+      <section class="applications-filters">
+        <div class="filter-row">
+          <span class="filter-group"><label for="csFilterTitle">제목</label><input type="text" id="csFilterTitle" placeholder="제목 검색" /></span>
+        </div>
+        <div class="filter-actions">
+          <button type="button" id="csBtnSearch" class="btn btn-primary">조회</button>
+          <button type="button" id="csBtnExcel" class="btn btn-primary">엑셀 다운로드</button>
+          <button type="button" id="csBtnAdd" class="btn btn-primary btn-icon-add" title="C/S 요청 추가">+</button>
+        </div>
+      </section>
+
+      <div class="cs-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>순서</th>
+              <th>구분</th>
+              <th>제목</th>
+              <th>제출일</th>
+              <th>접수일</th>
+              <th>완료일</th>
+              <th>작성자</th>
+              <th>수정</th>
+              <th>삭제</th>
+            </tr>
+          </thead>
+          <tbody id="csListBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 전국 바이블 올림피아드</p>
+  </footer>
+
+  <div id="csFormOverlay" class="app-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="csFormTitle">
+    <div class="app-modal-box cs-form-modal" style="max-width:1400px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <p id="csFormTitle" class="app-modal-message" style="margin:0;">C/S 요청 등록</p>
+        <button type="button" id="csFormClose" class="btn btn-outline">닫기</button>
+      </div>
+      <form id="csForm">
+        <input type="hidden" id="csFormId" name="id" />
+        <div class="cs-form-filters">
+          <div class="cs-form-row">
+            <span class="cs-form-group"><label for="csFormCd">구분</label><select id="csFormCd" name="customerservice_cd"><option value="">선택하세요</option></select></span>
+          </div>
+          <div class="cs-form-row">
+            <span class="cs-form-group"><label for="csFormStartYmd">접수일</label><input type="text" id="csFormStartYmd" name="start_ymd" placeholder="연도-월-일" /></span>
+            <span class="cs-form-group"><label for="csFormEndYmd">완료일</label><input type="text" id="csFormEndYmd" name="end_ymd" placeholder="연도-월-일" /></span>
+          </div>
+          <div class="cs-form-row">
+            <span class="cs-form-group"><label for="csFormCreateYmd">작성일</label><input type="text" id="csFormCreateYmd" name="create_ymd" readonly /></span>
+            <span class="cs-form-group"><label for="csFormCreateUser">작성자</label><input type="text" id="csFormCreateUser" name="create_user_name" readonly /></span>
+          </div>
+          <div class="cs-form-row">
+            <span class="cs-form-group cs-form-group-full"><label for="csFormTitleInput">제목</label><input type="text" id="csFormTitleInput" name="title" placeholder="제목" required /></span>
+          </div>
+          <div class="cs-form-row cs-form-row-content">
+            <label>내용</label>
+            <div id="csQuillEditor" class="cs-quill-wrap" style="height:220px;"></div>
+          </div>
+          <div class="cs-form-row cs-form-row-content">
+            <label>첨부파일</label>
+            <div class="cs-attachment-area">
+              <input type="file" id="csFormFiles" name="files" multiple accept="*" class="cs-file-input" />
+              <div id="csAttachmentList" class="cs-attachment-list"></div>
+            </div>
+          </div>
+          <div id="csFormProgressWrap" class="cs-form-progress-wrap hidden" aria-hidden="true">
+            <div class="cs-form-progress-bar"><span></span></div>
+            <p class="cs-form-progress-text">저장 중…</p>
+          </div>
+          <div class="cs-form-actions">
+            <button type="submit" id="csFormSubmit" class="btn btn-primary">저장</button>
+            <button type="button" id="csFormCancel" class="btn btn-outline">취소</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ko.js"></script>
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <script type="module" src="/js/firebase-config.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/admin.js"></script>
+  <script type="module" src="/js/admin-customerservice.js"></script>
+</body>
+</html>
