@@ -42,6 +42,8 @@ let csPendingFiles = [];
 let csExistingAttachments = [];
 /** 수정 시 사용자가 제거한 기존 첨부 URL */
 let csRemovedAttachmentUrls = [];
+/** 조회 팝업에서 댓글 대상 C/S 문서 id */
+let csViewCurrentId = null;
 
 function renderList() {
   const tbody = document.getElementById("csListBody");
@@ -75,8 +77,12 @@ function renderList() {
           esc(r.customerservice_cd_name || r.customerservice_cd || "—") +
           "</td>" +
           "<td>" +
+          (r.comment_count > 0 ? '<span class=\"cs-title-comment-count\">(' + Number(r.comment_count) + ")</span> " : "") +
+          '<a href=\"#\" class=\"cs-title-view\" data-id=\"' +
+          esc(r.id) +
+          "\">" +
           esc(r.title || "—") +
-          "</td>" +
+          "</a></td>" +
           "<td>" +
           ymdDisplay(r.create_ymd) +
           "</td>" +
@@ -106,6 +112,78 @@ function renderList() {
   tbody.querySelectorAll(".btn-cs-delete").forEach((btn) => {
     btn.addEventListener("click", () => confirmDelete(btn.getAttribute("data-id")));
   });
+  tbody.querySelectorAll(".cs-title-view").forEach((a) => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      openView(a.getAttribute("data-id"));
+    });
+  });
+}
+
+async function loadCsViewComments(docId) {
+  const listEl = document.getElementById("csViewComments");
+  if (!listEl) return;
+  try {
+    const res = await admin.customerservice.commentsList(docId);
+    const items = res?.items || [];
+    if (items.length === 0) {
+      listEl.innerHTML = "<span class=\"text-muted\">댓글이 없습니다.</span>";
+    } else {
+      listEl.innerHTML = items
+        .map(
+          (c) =>
+            '<div class="cs-view-comment-item">' +
+            '<div class="cs-comment-meta">' +
+            esc(c.create_user_name || "—") +
+            " " +
+            (c.create_ymd ? ymdDisplay(c.create_ymd) + (c.createdAt ? " " + String(c.createdAt).slice(11, 16) : "") : "") +
+            "</div>" +
+            '<div class="cs-comment-body">' +
+            esc((c.content || "").trim()) +
+            "</div></div>"
+        )
+        .join("");
+    }
+  } catch (e) {
+    listEl.innerHTML = "<span class=\"text-muted\">댓글을 불러올 수 없습니다.</span>";
+  }
+}
+
+function openView(id) {
+  const row = csListData.find((r) => r.id === id);
+  if (!row) return;
+  csViewCurrentId = id;
+  const contentsEl = document.getElementById("csViewContents");
+  const attachmentsEl = document.getElementById("csViewAttachments");
+  if (contentsEl) contentsEl.innerHTML = row.contents || "";
+  if (attachmentsEl) {
+    const list = row.attachments || [];
+    if (list.length === 0) {
+      attachmentsEl.innerHTML = "<span class=\"text-muted\">선택된 파일 없음</span>";
+    } else {
+      attachmentsEl.innerHTML = list
+        .map(
+          (a) =>
+            '<a href="' +
+            esc(a.url || "#") +
+            '" target="_blank" rel="noopener">' +
+            esc(a.name || "첨부") +
+            "</a>"
+        )
+        .join("");
+    }
+  }
+  const commentInput = document.getElementById("csViewCommentInput");
+  if (commentInput) commentInput.value = "";
+  loadCsViewComments(id);
+  document.getElementById("csViewOverlay").classList.remove("hidden");
+  document.getElementById("csViewOverlay").classList.add("is-visible");
+}
+
+function closeView() {
+  csViewCurrentId = null;
+  document.getElementById("csViewOverlay").classList.add("hidden");
+  document.getElementById("csViewOverlay").classList.remove("is-visible");
 }
 
 async function loadList() {
@@ -418,6 +496,33 @@ function initCsPage() {
       renderCsAttachments();
     }
   });
+  document.getElementById("csViewClose")?.addEventListener("click", closeView);
+  document.getElementById("csViewCommentSave")?.addEventListener("click", async () => {
+    const docId = csViewCurrentId;
+    const input = document.getElementById("csViewCommentInput");
+    const content = (input?.value || "").trim();
+    if (!docId) return;
+    if (!content) {
+      showModal("댓글을 입력하세요.");
+      return;
+    }
+    const btn = document.getElementById("csViewCommentSave");
+    if (btn) btn.disabled = true;
+    try {
+      await admin.customerservice.commentCreate(docId, { content });
+      if (input) input.value = "";
+      await loadCsViewComments(docId);
+      showModal("댓글이 저장되었습니다.");
+    } catch (e) {
+      showModal("댓글 저장 실패: " + (e.message || e.data?.error || ""));
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+  document.getElementById("csViewOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "csViewOverlay") closeView();
+  });
+  document.getElementById("csViewOverlay")?.querySelector(".app-modal-box")?.addEventListener("click", (e) => e.stopPropagation());
   document.getElementById("csFormClose")?.addEventListener("click", closeForm);
   document.getElementById("csFormCancel")?.addEventListener("click", closeForm);
   document.getElementById("csFormOverlay")?.addEventListener("click", (e) => {
@@ -425,7 +530,10 @@ function initCsPage() {
   });
   document.getElementById("csFormOverlay")?.querySelector(".app-modal-box")?.addEventListener("click", (e) => e.stopPropagation());
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && document.getElementById("csFormOverlay")?.classList.contains("is-visible")) closeForm();
+    if (e.key === "Escape") {
+      if (document.getElementById("csViewOverlay")?.classList.contains("is-visible")) closeView();
+      else if (document.getElementById("csFormOverlay")?.classList.contains("is-visible")) closeForm();
+    }
   });
   document.getElementById("csForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();

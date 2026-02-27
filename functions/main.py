@@ -1039,6 +1039,13 @@ def admin_customerservice_list():
                 it.get("customerservice_cd"),
                 it.get("create_ymd"),
             )
+            # 실제 댓글 개수 반영 (기존 문서는 comment_count 미저장일 수 있음)
+            comments_ref = db.collection("bo_customerservice").document(it["id"]).collection("comments")
+            try:
+                comment_docs = list(comments_ref.limit(1000).stream())
+                it["comment_count"] = len(comment_docs)
+            except Exception:
+                it["comment_count"] = it.get("comment_count") or 0
         return _json_response({"items": items})
     data = request.get_json() or {}
     today_ymd = _today_ymd_str()
@@ -1078,6 +1085,66 @@ def admin_customerservice_detail(doc_id):
         return _json_response({"id": doc_id, **ref.get().to_dict()})
     ref.delete()
     return _json_response({"ok": True}, 200)
+
+
+@app.route("/api/admin/customerservice/<doc_id>/comments", methods=["GET", "POST", "OPTIONS"])
+def admin_customerservice_comments(doc_id):
+    """C/S 요청 댓글: GET 목록, POST 등록. 서브컬렉션 bo_customerservice/{doc_id}/comments."""
+    if request.method == "OPTIONS":
+        return ("", 204, _cors_headers())
+    decoded = _get_decoded_token()
+    if not decoded:
+        return _json_response({"error": "인증이 필요합니다."}, 401)
+    uid = decoded.get("uid")
+    if not _require_admin(uid, decoded):
+        return _json_response({"error": "관리자 권한이 필요합니다."}, 403)
+    db = get_db()
+    cs_ref = db.collection("bo_customerservice").document(doc_id)
+    if not cs_ref.get().exists:
+        return _json_response({"error": "C/S 요청을 찾을 수 없습니다."}, 404)
+    coll = cs_ref.collection("comments")
+    if request.method == "GET":
+        docs = coll.order_by("createdAt", direction=_firestore().Query.ASCENDING).stream()
+        items = [{"id": d.id, **d.to_dict()} for d in docs]
+        uids = list({(it.get("create_user") or "").strip() for it in items if (it.get("create_user") or "").strip()})
+        if uids:
+            user_names = {}
+            for i in range(0, len(uids), 30):
+                chunk = uids[i : i + 30]
+                refs = [db.collection("bo_users").document(u) for u in chunk]
+                for ref_u, u in zip(db.get_all(refs), chunk):
+                    if ref_u.exists:
+                        user_names[u] = _bo_user_display_name(ref_u.to_dict())
+            for it in items:
+                it["create_user_name"] = user_names.get((it.get("create_user") or "").strip(), "")
+        return _json_response({"items": items})
+    data = request.get_json() or {}
+    content = (data.get("content") or "").strip()
+    if not content:
+        return _json_response({"error": "댓글 내용을 입력하세요."}, 400)
+    today_ymd = _today_ymd_str()
+    create_user_name = ""
+    bu = db.collection("bo_users").document(uid).get()
+    if bu.exists:
+        create_user_name = _bo_user_display_name(bu.to_dict())
+    ref = coll.document()
+    comment_data = {
+        "content": content,
+        "create_user": uid,
+        "create_ymd": today_ymd,
+        "create_user_name": create_user_name,
+        "createdAt": _firestore().SERVER_TIMESTAMP,
+    }
+    with db.transaction() as t:
+        ref.set(comment_data, transaction=t)
+        parent_snap = cs_ref.get(transaction=t)
+        current_count = (parent_snap.to_dict() or {}).get("comment_count") or 0
+        cs_ref.update({"comment_count": current_count + 1}, transaction=t)
+    doc = ref.get()
+    out = {"id": ref.id, **doc.to_dict()}
+    if not out.get("create_user_name") and create_user_name:
+        out["create_user_name"] = create_user_name
+    return _json_response(out, 201)
 
 
 # ---------- 관리자: 공통코드 ----------

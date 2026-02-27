@@ -139,6 +139,41 @@
     .cs-attachment-item a:hover { text-decoration: underline; }
     .cs-attachment-item .cs-attach-remove { cursor: pointer; color: var(--color-text-muted); padding: 0 0.2rem; }
     .cs-attachment-item .cs-attach-remove:hover { color: var(--color-text); }
+    /* C/S 요청 조회 팝업: 내용·첨부파일만 표시, 내용 영역 가로·세로 4배 */
+    .cs-view-modal { min-width: 1000px; max-width: 95vw; }
+    .cs-view-modal .cs-view-body { padding: 0; }
+    .cs-view-section { margin-bottom: 1rem; }
+    .cs-view-section:last-child { margin-bottom: 0; }
+    .cs-view-label { display: block; font-size: 0.875rem; color: var(--color-text-muted); margin-bottom: 0.35rem; }
+    .cs-view-contents {
+      min-height: 320px; padding: 0.75rem; background: var(--color-bg); border: 1px solid var(--color-border);
+      border-radius: var(--radius); color: var(--color-text); font-size: 0.9375rem; line-height: 1.5;
+      overflow: auto; max-height: 1600px; text-align: left;
+    }
+    .cs-view-contents p { margin: 0.35em 0; }
+    .cs-view-attachments { padding: 0.5rem 0; }
+    .cs-view-attachments a { color: var(--color-link, #58a6ff); text-decoration: none; margin-right: 0.75rem; }
+    .cs-view-attachments a:hover { text-decoration: underline; }
+    .cs-view-comments-section { margin-top: 1rem; }
+    .cs-view-comments-list {
+      max-height: 280px; overflow-y: auto; margin-bottom: 0.75rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .cs-view-comment-item {
+      padding: 0.5rem 0.75rem; background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius); font-size: 0.875rem;
+    }
+    .cs-view-comment-item .cs-comment-meta { color: var(--color-text-muted); margin-bottom: 0.25rem; text-align: left; }
+    .cs-view-comment-item .cs-comment-body { color: var(--color-text); white-space: pre-wrap; word-break: break-word; text-align: left; }
+    .cs-view-comment-form { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+    .cs-view-comment-textarea {
+      width: 100%; min-height: 60px; padding: 0.5rem; box-sizing: border-box;
+      background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius);
+      color: var(--color-text); font-size: 0.875rem; resize: vertical;
+    }
+    .cs-title-comment-count { color: #e6a756; font-weight: 600; margin-right: 0.25rem; }
+    .cs-title-view { color: var(--color-link, #58a6ff); text-decoration: none; cursor: pointer; }
+    .cs-title-view:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -209,6 +244,33 @@
   <footer class="footer">
     <p>© 전국 바이블 올림피아드</p>
   </footer>
+
+  <div id="csViewOverlay" class="app-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="csViewTitle">
+    <div class="app-modal-box cs-view-modal">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+        <p id="csViewTitle" class="app-modal-message" style="margin:0;">C/S 요청 조회</p>
+        <button type="button" id="csViewClose" class="btn btn-outline">닫기</button>
+      </div>
+      <div class="cs-view-body">
+        <div class="cs-view-section">
+          <label class="cs-view-label">내용</label>
+          <div id="csViewContents" class="cs-view-contents"></div>
+        </div>
+        <div class="cs-view-section">
+          <label class="cs-view-label">첨부파일</label>
+          <div id="csViewAttachments" class="cs-view-attachments"></div>
+        </div>
+        <div class="cs-view-section cs-view-comments-section">
+          <label class="cs-view-label">댓글</label>
+          <div id="csViewComments" class="cs-view-comments-list"></div>
+          <div class="cs-view-comment-form">
+            <textarea id="csViewCommentInput" class="cs-view-comment-textarea" placeholder="댓글을 입력하세요." rows="3"></textarea>
+            <button type="button" id="csViewCommentSave" class="btn btn-primary">댓글 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="csFormOverlay" class="app-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="csFormTitle">
     <div class="app-modal-box cs-form-modal" style="max-width:1400px;">

@@ -130,6 +130,12 @@ export const admin = {
     create: (body) => api("/api/admin/customerservice", { method: "POST", body: JSON.stringify(body) }),
     update: (id, body) => api(`/api/admin/customerservice/${id}`, { method: "PUT", body: JSON.stringify(body) }),
     delete: (id) => api(`/api/admin/customerservice/${id}`, { method: "DELETE" }),
+    commentsList: (docId) => api("/api/admin/customerservice/" + encodeURIComponent(docId) + "/comments"),
+    commentCreate: (docId, body) =>
+      api("/api/admin/customerservice/" + encodeURIComponent(docId) + "/comments", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
   },
   commonCodes: {
     list: () => api("/api/admin/common-codes"),
